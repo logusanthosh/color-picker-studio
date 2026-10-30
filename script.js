@@ -12,6 +12,11 @@ const previewCardTitle = document.getElementById('preview-card-title');
 const shadesContainer = document.getElementById('shades-container');
 const historyContainer = document.getElementById('history-container');
 const eyedropperBtn = document.getElementById('eyedropper-btn');
+const imagePickerFallback = document.getElementById('image-picker-fallback');
+const imageFileInput = document.getElementById('image-file');
+const imageCanvas = document.getElementById('image-canvas');
+const imagePickerError = document.getElementById('image-picker-error');
+const mobileColorPicker = document.getElementById('mobile-color-picker');
 
 let history = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#3b82f6'];
 
@@ -49,6 +54,7 @@ function rgbToHsl(r, g, b) {
 function updateColor(hex) {
   colorDisplay.style.backgroundColor = hex;
   colorPicker.value = hex;
+  mobileColorPicker.value = hex;
   hexVal.value = hex;
 
   const { r, g, b } = hexToRgb(hex);
@@ -146,9 +152,74 @@ eyedropperBtn.addEventListener('click', async () => {
       console.log('EyeDropper error:', e);
     }
   } else {
-    alert('EyeDropper API is not supported in this browser.');
+    imagePickerFallback.classList.remove('hidden');
+    imagePickerFallback.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 });
+
+if (!('EyeDropper' in window)) {
+  eyedropperBtn.innerHTML = '<span>🎨</span> Pick Color from Image';
+  imagePickerFallback.classList.remove('hidden');
+}
+
+imageFileInput.addEventListener('change', () => {
+  const file = imageFileInput.files[0];
+  if (!file) return;
+
+  imagePickerError.classList.add('hidden');
+  imageCanvas.classList.add('hidden');
+  if (file.type && !file.type.startsWith('image/')) {
+    imagePickerError.textContent = 'Please choose a valid image file.';
+    imagePickerError.classList.remove('hidden');
+    imageFileInput.value = '';
+    return;
+  }
+
+  const imageUrl = URL.createObjectURL(file);
+  const image = new Image();
+  image.onload = () => {
+    const context = imageCanvas.getContext('2d', { willReadFrequently: true });
+    if (!context) {
+      imagePickerError.textContent = 'This image could not be opened. Please try another image.';
+      imagePickerError.classList.remove('hidden');
+      URL.revokeObjectURL(imageUrl);
+      return;
+    }
+
+    imageCanvas.width = image.naturalWidth;
+    imageCanvas.height = image.naturalHeight;
+    context.drawImage(image, 0, 0);
+    imageCanvas.classList.remove('hidden');
+    URL.revokeObjectURL(imageUrl);
+  };
+  image.onerror = () => {
+    imagePickerError.textContent = 'This image could not be opened. Please try another image.';
+    imagePickerError.classList.remove('hidden');
+    URL.revokeObjectURL(imageUrl);
+  };
+  image.src = imageUrl;
+});
+
+imageCanvas.addEventListener('pointerdown', (event) => {
+  if (!imageCanvas.width || !imageCanvas.height) return;
+
+  const bounds = imageCanvas.getBoundingClientRect();
+  const context = imageCanvas.getContext('2d');
+  if (!context) {
+    imagePickerError.textContent = 'This image could not be sampled. Please choose another image.';
+    imagePickerError.classList.remove('hidden');
+    return;
+  }
+  const x = Math.min(imageCanvas.width - 1, Math.max(0,
+    Math.floor((event.clientX - bounds.left) * imageCanvas.width / bounds.width)));
+  const y = Math.min(imageCanvas.height - 1, Math.max(0,
+    Math.floor((event.clientY - bounds.top) * imageCanvas.height / bounds.height)));
+  const [red, green, blue] = context.getImageData(x, y, 1, 1).data;
+  const hex = `#${[red, green, blue].map(channel => channel.toString(16).padStart(2, '0')).join('')}`;
+  updateColor(hex);
+});
+
+mobileColorPicker.addEventListener('input', (event) => updateColor(event.target.value));
 
 updateColor('#6366f1');
 renderHistory();

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aesthetic Glassmorphic Color Picker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: radial-gradient(circle at top left, #1e1b4b, #0f172a, #020617);
+      min-height: 100vh;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .glass-input {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+  </style>
+</head>
+<body class="text-slate-100 flex items-center justify-center p-4 min-h-screen">
+
+  <div class="glass-card max-w-4xl w-full rounded-3xl p-6 md:p-8 shadow-2xl my-8">
+    
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+      <div>
+        <h1 class="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+          Aesthetic Color Studio
+        </h1>
+        <p class="text-slate-400 text-sm mt-1">Interactive Web Color Picker & Design Assistant</p>
+      </div>
+      <button id="eyedropper-btn" class="px-4 py-2.5 rounded-xl glass-card hover:bg-white/10 transition-all text-sm font-medium flex items-center gap-2 border border-white/10">
+        <span>🎨</span> Pick from Screen
+      </button>
+    </div>
+
+    <!-- Main Grid Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+      <!-- Left Column: Picker & Values -->
+      <div class="lg:col-span-5 flex flex-col gap-6">
+        
+        <!-- Color Preview Box -->
+        <div id="color-display" class="h-44 rounded-2xl relative shadow-inner transition-all duration-300 flex items-end p-4 border border-white/10" style="background-color: #6366f1;">
+          <input type="color" id="color-picker" value="#6366f1" class="opacity-0 absolute inset-0 w-full h-full cursor-pointer">
+          <div class="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs text-white border border-white/10">
+            Click to change color
+          </div>
+        </div>
+
+        <!-- Inputs Section -->
+        <div class="space-y-3">
+          <div>
+            <label class="text-xs text-slate-400 uppercase font-semibold tracking-wider">HEX</label>
+            <div class="flex gap-2 mt-1">
+              <input type="text" id="hex-val" value="#6366f1" class="glass-input w-full px-3 py-2 rounded-xl text-sm font-mono focus:outline-none focus:border-indigo-500">
+              <button onclick="copyToClipboard('hex-val')" class="px-3 py-2 glass-card hover:bg-white/10 rounded-xl text-xs font-semibold">Copy</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-xs text-slate-400 uppercase font-semibold tracking-wider">RGB</label>
+            <div class="flex gap-2 mt-1">
+              <input type="text" id="rgb-val" value="rgb(99, 102, 241)" readonly class="glass-input w-full px-3 py-2 rounded-xl text-sm font-mono text-slate-300">
+              <button onclick="copyToClipboard('rgb-val')" class="px-3 py-2 glass-card hover:bg-white/10 rounded-xl text-xs font-semibold">Copy</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-xs text-slate-400 uppercase font-semibold tracking-wider">HSL</label>
+            <div class="flex gap-2 mt-1">
+              <input type="text" id="hsl-val" value="hsl(239, 84%, 67%)" readonly class="glass-input w-full px-3 py-2 rounded-xl text-sm font-mono text-slate-300">
+              <button onclick="copyToClipboard('hsl-val')" class="px-3 py-2 glass-card hover:bg-white/10 rounded-xl text-xs font-semibold">Copy</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Live UI Preview & Shades -->
+      <div class="lg:col-span-7 flex flex-col gap-6">
+        
+        <!-- Live Preview Component Card -->
+        <div class="glass-card p-5 rounded-2xl border border-white/10">
+          <h2 class="text-xs text-slate-400 uppercase font-semibold tracking-wider mb-4">Live Component Preview</h2>
+          
+          <div class="space-y-4">
+            <!-- Dynamic Button Preview -->
+            <div class="flex gap-3">
+              <button id="preview-btn-primary" class="px-5 py-2.5 rounded-xl font-medium text-sm text-white shadow-lg transition-all" style="background-color: #6366f1;">
+                Primary Button
+              </button>
+              <button id="preview-btn-secondary" class="px-5 py-2.5 rounded-xl font-medium text-sm border transition-all" style="border-color: #6366f1; color: #6366f1;">
+                Outline Button
+              </button>
+            </div>
+
+            <!-- Dynamic Card Preview -->
+            <div id="preview-card" class="p-4 rounded-xl border transition-all" style="background-color: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.3);">
+              <h3 id="preview-card-title" class="font-semibold text-sm" style="color: #6366f1;">Interactive Card Component</h3>
+              <p class="text-xs text-slate-300 mt-1">See how your selected color looks in real UI elements dynamically.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Color Shades Palette -->
+        <div class="glass-card p-5 rounded-2xl border border-white/10">
+          <h2 class="text-xs text-slate-400 uppercase font-semibold tracking-wider mb-3">Generated Shades & Tints</h2>
+          <div id="shades-container" class="grid grid-cols-5 gap-2">
+            <!-- Generated via JS -->
+          </div>
+        </div>
+
+        <!-- History Palette -->
+        <div class="glass-card p-5 rounded-2xl border border-white/10">
+          <h2 class="text-xs text-slate-400 uppercase font-semibold tracking-wider mb-3">Recently Selected Colors</h2>
+          <div id="history-container" class="flex gap-2 overflow-x-auto pb-1">
+            <!-- Generated via JS -->
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-5 right-5 glass-card bg-indigo-600/90 text-white px-4 py-2.5 rounded-xl text-sm font-medium shadow-xl opacity-0 transition-opacity duration-300 pointer-events-none">
+    Copied to clipboard! 🚀
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
